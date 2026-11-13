@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: frontier_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: frontier
+      POSTGRES_PASSWORD: frontier_local_password
+      POSTGRES_DB: frontier_sa
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  worker:
+    build: ./worker
+    container_name: frontier_worker
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://frontier:frontier_local_password@db:5432/frontier_sa
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      OLLAMA_MODEL: llama3.2:latest
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./worker:/app
+
+  api:
+    build: ./api
+    container_name: frontier_api
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://frontier:frontier_local_password@db:5432/frontier_sa
+    volumes:
+      - ./api:/app
+
+volumes:
+  postgres_data:
