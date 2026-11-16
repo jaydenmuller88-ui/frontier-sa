@@ -1,4 +1,4 @@
-# Frontier SA
+# Frontier SA (Still in progress)
 
 Automated South African corporate, legal, and law enforcement intelligence platform powered by FastAPI, PostgreSQL, and local LLM entity extraction via Ollama.
 
